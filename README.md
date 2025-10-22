@@ -50,34 +50,45 @@ Características y motivación
 Estructura del proyecto
 -----------------------
 Raíz propuesta:
-- src/  
-  - main.py  
-  - productor.py  
-  - consumidor.py  
-  - lector.py  
-  - escritor.py  
-  - almacenamiento.py
-- data/  
-  - pacientes.json
-- docs/  
-  - diagramas/ (imágenes de apoyo)
 
-Árbol de ejemplo:
-```
-project-root/
-├─ src/
-│  ├─ main.py
-│  ├─ productor.py
-│  ├─ consumidor.py
-│  ├─ lector.py
-│  ├─ escritor.py
-│  └─ almacenamiento.py
-├─ data/
-│  └─ pacientes.json
-└─ docs/
-   └─ diagramas/
-       ├─ flujo_procesos.jpg
-       └─ comunicacion_modulos.jpg
+1. main.py
+   - Entrada principal que inicializa la simulación y los hilos.
+
+2. config.py
+   - Configuraciones generales: tamaño del buffer, número de médicos, tiempos de espera.
+
+3. models/
+   - __init__.py
+   - productor_consumidor.py
+     - Implementa el modelo Productor–Consumidor usando threading.Semaphore y Lock.
+   - lectores_escritor.py
+     - Implementa el modelo Lectores–Escritor con contador de lectores y exclusión mutua para escritores.
+
+4. hospital/
+   - __init__.py
+   - medico.py
+     - Clase Médico, genera diagnósticos aleatorios.
+   - laboratorio.py
+     - Clase Laboratorio, consume diagnósticos y devuelve resultados.
+   - base_datos.py
+     - Clase BaseDeDatos, buffer compartido thread-safe.
+   - estadisticas.py
+     - Clase Estadisticas, lectores concurrentes que leen datos.
+   - direccion_medica.py
+     - Clase DireccionMedica, escritor exclusivo.
+
+5. utils/
+   - __init__.py
+   - logger.py
+     - Funciones para imprimir logs o eventos de la simulación.
+   - generador_datos.py
+     - Funciones para generar diagnósticos aleatorios.
+
+6. tests/
+   - test_productor_consumidor.py
+     - Pruebas unitarias del modelo Productor–Consumidor.
+   - test_lectores_escritor.py
+     - Pruebas unitarias del modelo Lectores–Escritor.
 ```
 
 Arquitectura y diagramas (visual)
