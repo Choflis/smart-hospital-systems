@@ -218,20 +218,6 @@ Pruebas y validación
 - Prueba de contención: buffer pequeño (p. ej., 2) y muchos productores para forzar semáforos.
 - Prueba Lectores–Escritores: lanzar múltiples lectores concurrentes con escritores programados y validar exclusión.
 
-Estética "YouTuber" — diseño visual dentro del README
------------------------------------------------------
-Para hacer el README más atractivo visualmente, se han incluido:
-- Encabezado con logo Python.
-- Badges de estado y versión.
-- Diagramas e imágenes con espacios visuales.
-- Bloques de código bien formateados y ejemplos de salida.
-Estos elementos facilitan la lectura rápida (thumbnail-style) y, al mismo tiempo, mantienen tono académico y técnico.
-
-Buenas prácticas y recomendaciones finales
-------------------------------------------
-- En producción, no use archivos JSON como base de datos simultánea sin un motor transaccional; use una base de datos ACID.
-- Mantenga la sección crítica mínima; registre timestamps y IDs únicos para trazabilidad.
-- Para simulaciones más avanzadas, considere usar multiprocessing o colas distribuidas (RabbitMQ, Kafka) si se desea simular distribución real.
 
 Conclusiones
 -----------
