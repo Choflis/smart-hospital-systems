@@ -1,0 +1,39 @@
+# --- Entorno virtual ---
+venv/
+.env/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# --- Archivos temporales y cache ---
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- Archivos de configuración de IDE ---
+.vscode/
+.idea/
+*.iml
+
+# --- Archivos de sistema o build ---
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# --- Configuración del sistema operativo ---
+desktop.ini
+
+# --- Archivos de pruebas ---
+coverage/
+.pytest_cache/
+htmlcov/
+
+# --- Configuración personal ---
+*.env.local
