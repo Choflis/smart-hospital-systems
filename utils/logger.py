@@ -1,6 +1,6 @@
-from datetime import datetime
-from colorama import Fore, Style
+import datetime
 
-def log_event(actor, message, color = Fore.CYAN):
-    tiempo = datatime.now().strftime("%H:%m:$S")
-    print(f"{color}[{tiempo}] {actor}: {message}{Style.RESET_ALL}")
+def log_event(msg: str):
+    """Imprime y guarda logs básicos"""
+    timestamp = datetime.datetime.now().strftime("[%H:%M:%S]")
+    print(timestamp, msg)
