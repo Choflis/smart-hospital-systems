@@ -26,18 +26,35 @@ class Buffer:
                 print("[BUFFER] No se pudo agregar, buffer lleno")
                 return False
 
-    def obtener_paciente(self):
+    def obtener_paciente(self, timeout=None):
         """
         Retira un paciente del buffer si hay alguno disponible.
-        Retorna el paciente o None si está vacío.
+        
+        Args:
+            timeout: Tiempo máximo de espera en segundos (None = no esperar)
+        
+        Retorna el paciente o None si está vacío o timeout.
         """
-        with self.lock:
-            if not self.cola.empty():
-                paciente = self.cola.get()
-                print(f"[BUFFER] Paciente retirado: {paciente.nombre}")
-                return paciente
-            else:
+        try:
+            if timeout is not None:
+                # Intenta obtener con timeout
+                if not self.cola.empty():
+                    with self.lock:
+                        paciente = self.cola.get(timeout=timeout)
+                        print(f"[BUFFER] Paciente retirado: {paciente.nombre}")
+                        return paciente
                 return None
+            else:
+                # Sin timeout (comportamiento original)
+                with self.lock:
+                    if not self.cola.empty():
+                        paciente = self.cola.get()
+                        print(f"[BUFFER] Paciente retirado: {paciente.nombre}")
+                        return paciente
+                    else:
+                        return None
+        except:
+            return None
 
     def esta_vacio(self):
         """

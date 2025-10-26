@@ -8,16 +8,24 @@ class Consumidor(threading.Thread):
         self.id = id
         self.buffer = buffer
         self._activo = True
+        self.daemon = True  # Hacer el hilo daemon para que se cierre con el programa
 
     def run(self):
         while self._activo:
-            paciente = self.buffer.obtener_paciente()
-            if paciente:
-                print(f"[Médico {self.id}] Atendiendo a {paciente.nombre}...")
-                time.sleep(2)  # Simula tiempo de atención
-                print(f"[Médico {self.id}] Terminó con {paciente.nombre}.")
-            else:
-                time.sleep(1)
+            try:
+                paciente = self.buffer.obtener_paciente(timeout=1)  # Timeout para verificar _activo
+                if paciente and self._activo:
+                    print(f"[Médico {self.id}] Atendiendo a {paciente.nombre}...")
+                    time.sleep(2)  # Simula tiempo de atención
+                    print(f"[Médico {self.id}] Terminó con {paciente.nombre}.")
+            except:
+                # Timeout o error, verificar si debe seguir activo
+                if not self._activo:
+                    break
+                time.sleep(0.5)
+        
+        print(f"[Médico {self.id}] Hilo detenido correctamente.")
 
     def detener(self):
+        """Detiene el hilo del médico"""
         self._activo = False
