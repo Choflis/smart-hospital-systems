@@ -245,7 +245,7 @@ class PanelControl(tk.Toplevel):
         
         stats = self.hospital.get_estadisticas()
         capacidad = self.hospital.capacidad_buffer
-        ocupados = stats['buffer_ocupado']
+        ocupados = stats['pacientes_en_buffer']
         
         # Título
         self.canvas_buffer.create_text(
@@ -307,7 +307,7 @@ class PanelControl(tk.Toplevel):
             text=f"● Pacientes Atendidos: {stats['pacientes_atendidos']}"
         )
         self.label_buffer.config(
-            text=f"● En Buffer: {stats['buffer_ocupado']} / {self.hospital.capacidad_buffer}"
+            text=f"● En Buffer: {stats['pacientes_en_buffer']} / {self.hospital.capacidad_buffer}"
         )
         self.label_expedientes.config(
             text=f"● Expedientes Registrados: {stats['expedientes']['total']}"
@@ -470,7 +470,7 @@ class VisualizacionFlujo(tk.Toplevel):
         stats = self.hospital.get_estadisticas()
         self.canvas.create_text(
             x_buffer, y_centro + 20,
-            text=f"{stats['buffer_ocupado']} / {self.hospital.capacidad_buffer}",
+            text=f"{stats['pacientes_en_buffer']} / {self.hospital.capacidad_buffer}",
             font=("Arial", 14, "bold"),
             fill="white"
         )

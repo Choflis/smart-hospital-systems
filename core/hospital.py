@@ -44,6 +44,9 @@ class Hospital:
         )
         self.logger = logging.getLogger(__name__)
         
+        # Guardar capacidad del buffer
+        self.capacidad_buffer = capacidad_buffer
+        
         # Inicializar componentes
         self.buffer = BufferPacientes(capacidad_buffer)
         self.sistema_expedientes = SistemaExpedientes()
