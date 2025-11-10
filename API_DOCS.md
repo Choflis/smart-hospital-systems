@@ -1,6 +1,6 @@
 # Documentación de la API - Smart Hospital System
 
-## 🚀 Iniciar el Servidor API
+## Iniciar el Servidor API
 
 Para iniciar el servidor API que permite conectar múltiples dispositivos:
 
@@ -14,7 +14,7 @@ uvicorn api_server.main:app --host 0.0.0.0 --port 8000 --reload
 - `--port 8000`: Puerto donde escucha el servidor
 - `--reload`: Reinicia automáticamente al detectar cambios (desarrollo)
 
-## 📱 Conectar desde Otros Dispositivos
+## Conectar desde Otros Dispositivos
 
 1. Encuentra la IP de tu computadora:
    - Windows: `ipconfig` (busca IPv4)

@@ -29,7 +29,7 @@ Abre tu navegador en:
 
 ---
 
-## 📱 Uso desde Múltiples Dispositivos
+## Uso desde Múltiples Dispositivos
 
 ### Caso de Uso: Hospital con 3 terminales
 
