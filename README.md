@@ -1,83 +1,167 @@
 # 🏥 Smart Hospital Systems - Sistema de Concurrencia
 
-Sistema hospitalario que demuestra conceptos de **Sistemas Operativos** utilizando **concurrencia** en Python con **2 interfaces**: Terminal y GUI.
+Sistema hospitalario que demuestra conceptos de **Sistemas Operativos** utilizando **concurrencia** en Python con arquitectura **cliente-servidor** e **interfaces independientes**.
 
 ## 📋 Descripción
 
 Este proyecto implementa un sistema hospitalario que simula:
-- **Problema Productor-Consumidor**: Generación y atención de pacientes
+- **Problema Productor-Consumidor**: Generación y atención de pacientes con buffer sincronizado
 - **Problema Lectores-Escritores**: Gestión de expedientes médicos
 - **Sincronización con Threads**: Coordinación entre múltiples procesos
+- **Arquitectura Cliente-Servidor**: Comunicación entre procesos vía sockets
+- **Interfaces Independientes**: Ventanas que pueden ejecutarse standalone
 
-## 🚀 Características
+## 🏗️ Arquitectura
+
+### Componentes Principales
+
+1. **main.py** - Servidor Principal
+   - Inicia hilos productores y consumidores
+   - Gestiona buffer de pacientes y expedientes
+   - Servidor de eventos para comunicación con interfaces
+
+2. **panel_hospital.py** - Panel de Visualización
+   - Interfaz gráfica independiente
+   - Se conecta al servidor si está activo
+   - Muestra logs y médicos en tiempo real
+   - Actualización event-driven (no polling)
+
+3. **registro_paciente.py** - Formulario de Registro
+   - Interfaz gráfica independiente
+   - Registra pacientes en el sistema
+   - Modo demo si no hay conexión
+
+## 🚀 Uso Rápido
+
+### Sistema Completo
+
+1. **Iniciar el servidor principal:**
+   ```bash
+   python main.py
+   ```
+
+2. **Abrir panel(es) de hospital (terminales separadas):**
+   ```bash
+   python ui/panel_hospital.py
+   ```
+
+3. **Abrir ventana(s) de registro (terminales separadas):**
+   ```bash
+   python ui/registro_paciente.py
+   ```
+
+✨ **Puedes abrir múltiples ventanas de cada tipo simultáneamente**
+
+### Modo Independiente (Demo)
+
+Las interfaces pueden ejecutarse sin el servidor:
+
+```bash
+python ui/panel_hospital.py      # Modo sin conexión
+python ui/registro_paciente.py   # Modo demo
+```
+
+## ⚙️ Opciones de Configuración
+
+```bash
+python main.py --buffer-size 10 --productores 3 --medicos 5 --port 5555
+```
+
+**Opciones disponibles:**
+- `--buffer-size N` - Capacidad del buffer (default: 5)
+- `--productores N` - Número de productores (default: 2)
+- `--medicos N` - Número de médicos (default: 3)
+- `--port N` - Puerto del servidor (default: 5555)
+
+## 🎯 Características Principales
 
 ### ✅ Concurrencia Implementada
-- ✅ Semáforos manuales (sin usar `threading.Semaphore`)
+- ✅ Semáforos manuales para buffer sincronizado
 - ✅ Locks para exclusión mutua
-- ✅ Variables de condición
-- ✅ Buffer circular con productores y consumidores
-- ✅ Sistema de lectores-escritores para expedientes
+- ✅ Problema Productor-Consumidor
+- ✅ Sistema Lectores-Escritores para expedientes
 
-### 🎯 Componentes del Sistema
-1. **Productores** (Threads): Generan pacientes aleatoriamente
-2. **Buffer**: Cola de espera con capacidad limitada (problema del buffer limitado)
-3. **Consumidores/Médicos** (Threads): Atienden pacientes del buffer
-4. **Sistema de Expedientes**: Almacenamiento con control de concurrencia (Lectores-Escritores)
+### ✅ Arquitectura Cliente-Servidor
+- ✅ Servidor de eventos basado en sockets
+- ✅ Comunicación asíncrona mediante JSON
+- ✅ Múltiples clientes simultáneos
+- ✅ Actualizaciones en tiempo real (event-driven)
 
-### 🖥️ Interfaces Disponibles
-- **Terminal UI**: Interfaz en consola con actualización en tiempo real
-- **GUI (2 Ventanas)**: 
-  - **Ventana 1**: Panel de Control con estadísticas y controles
-  - **Ventana 2**: Visualización animada del flujo de datos
+### ✅ Interfaces Independientes
+- ✅ Ejecución standalone sin dependencias
+- ✅ Conexión automática al servidor
+- ✅ Modo demo cuando no hay servidor
+- ✅ Múltiples ventanas sin interferencia
+
+## 📊 Flujo de Datos
+
+```
+main.py (Servidor)
+    ├── Productores (threads) → Generan pacientes
+    ├── Buffer (sincronizado) → Cola de pacientes
+    ├── Médicos (threads) → Consumen pacientes
+    ├── Expedientes → Sistema Lectores-Escritores
+    └── Event Server → Comunicación con UIs
+
+panel_hospital.py (Cliente 1, 2, 3...)
+    └── Socket → Recibe eventos en tiempo real
+
+registro_paciente.py (Cliente 1, 2, 3...)
+    └── Socket → Envía nuevos pacientes
+```
 
 ## 📁 Estructura del Proyecto
 
 ```
 smart-hospital-systems/
-├── core/                      # Lógica principal
-│   ├── hospital.py           # Gestión del sistema hospitalario
+├── main.py                    # Servidor principal ⭐
+├── core/
+│   ├── hospital.py           # Lógica del hospital
+│   ├── event_server.py       # Servidor de eventos ⭐
 │   ├── paciente.py           # Modelo de paciente
-│   └── expedientes.py        # Sistema de expedientes (Lectores-Escritores)
-├── concurrencia/             # Primitivas de concurrencia
-│   ├── semaforo_manual.py    # Implementación de semáforo sin usar threading.Semaphore
-│   └── buffer.py             # Buffer circular con sincronización
-├── ui/                       # Interfaces de usuario
-│   ├── terminal_ui.py        # Interfaz en terminal
-│   └── gui_app.py           # Interfaz gráfica con 2 ventanas
-├── data/                     # Datos persistentes
-│   └── expedientes.json      # Expedientes médicos guardados
-├── docs/                     # Documentación
-│   └── explicacion_concurrencia.md
-├── tests/                    # Pruebas
-│   └── test_concurrencia.py
-├── main.py                   # Punto de entrada
-├── config.py                 # Configuración
+│   └── __init__.py
+├── concurrencia/
+│   ├── buffer.py             # Buffer con semáforos
+│   ├── productor.py          # Threads productores
+│   ├── consumidor.py         # Threads médicos
+│   ├── lector_escritor.py   # Sistema de expedientes
+│   └── __init__.py
+├── ui/
+│   ├── panel_hospital.py     # Panel principal ⭐
+│   ├── registro_paciente.py # Registro ⭐
+│   ├── terminal_ui.py        # UI terminal (legacy)
+│   └── gui_app.py            # GUI (legacy)
+├── data/
+│   └── logs/                 # Logs del sistema
+├── docs/
+│   └── ARQUITECTURA.md       # Documentación detallada
+├── config.py                 # Configuraciones
 └── requirements.txt          # Dependencias
 ```
 
 ## 🔧 Instalación
 
-### Requisitos Previos
+### Requisitos
 - Python 3.8 o superior
-- pip (gestor de paquetes de Python)
-- tkinter (viene incluido con Python en Windows y Mac)
+- pip
+- tkinter (incluido con Python)
 
-### Pasos de Instalación
+### Pasos
 
-1. **Clonar el repositorio**
+1. **Clonar repositorio**
 ```bash
-git clone <url-del-repositorio>
+git clone <url>
 cd smart-hospital-systems
 ```
 
-2. **Crear entorno virtual** (recomendado)
+2. **Crear entorno virtual** (opcional pero recomendado)
 ```bash
 python -m venv venv
 
-# En Windows:
+# Windows:
 venv\Scripts\activate
 
-# En Linux/Mac:
+# Linux/Mac:
 source venv/bin/activate
 ```
 
@@ -86,223 +170,90 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 🎮 Uso
-
-### 🖥️ Opción 1: Interfaz Gráfica (GUI) - RECOMENDADO
-
-```bash
-python main.py
-```
-o explícitamente:
-```bash
-python main.py --mode gui
-```
-
-Se abrirán **2 ventanas**:
-1. **Panel de Control**: Controles, estadísticas, buffer visual, log de eventos
-2. **Visualización de Flujo**: Diagrama animado del flujo de concurrencia
-
-**Controles en el Panel:**
-- ▶️ **INICIAR**: Inicia el sistema hospitalario
-- ⏸️ **PAUSAR**: Pausa la simulación
-- ⏹️ **DETENER**: Detiene completamente el sistema
-
-### 📟 Opción 2: Interfaz de Terminal
-
-```bash
-python main.py --mode terminal
-```
-
-El sistema mostrará:
-- Estado del buffer en tiempo real
-- Pacientes siendo generados
-- Médicos atendiendo pacientes
-- Estadísticas de concurrencia
-- Log de eventos
-
-**Controles:**
-- **ENTER**: Actualizar vista
-- **Ctrl+C**: Detener el sistema de forma segura
-
-### ⚙️ Opciones Avanzadas
-
-```bash
-# Cambiar tamaño del buffer
-python main.py --buffer-size 10
-
-# Cambiar número de productores
-python main.py --productores 3
-
-# Cambiar número de médicos
-python main.py --medicos 5
-
-# Combinación de opciones
-python main.py --mode gui --buffer-size 8 --productores 3 --medicos 4
-```
-
-**Ayuda:**
-```bash
-python main.py --help
-```
-
-## 📊 Conceptos de Sistemas Operativos Demostrados
+## 📊 Conceptos de Sistemas Operativos
 
 ### 1. Problema Productor-Consumidor
-- **Productores**: Threads que generan pacientes
-- **Buffer limitado**: Cola de espera con capacidad máxima
-- **Consumidores**: Médicos que atienden pacientes
-- **Sincronización**: Semáforos para evitar condiciones de carrera
+- Productores generan pacientes
+- Buffer limitado sincronizado con semáforos
+- Médicos consumen pacientes del buffer
 
 ### 2. Problema Lectores-Escritores
-- **Escritores**: Médicos registrando expedientes
-- **Lectores**: Consultas de expedientes
-- **Prioridad**: Los escritores tienen prioridad
-- **Exclusión mutua**: Solo un escritor a la vez
+- Expedientes médicos con control de concurrencia
+- Múltiples lectores simultáneos
+- Un solo escritor a la vez
 
-### 3. Semáforos Manuales
-Implementación propia sin usar `threading.Semaphore`:
-```python
-class SemaforoManual:
-    def __init__(self, valor_inicial):
-        self.valor = valor_inicial
-        self.lock = threading.Lock()
-        self.condition = threading.Condition(self.lock)
-    
-    def wait(self):
-        with self.condition:
-            while self.valor <= 0:
-                self.condition.wait()
-            self.valor -= 1
-    
-    def signal(self):
-        with self.condition:
-            self.valor += 1
-            self.condition.notify()
+### 3. Sincronización de Threads
+- Locks para exclusión mutua
+- Semáforos para control de capacidad
+- Variables de condición
+
+### 4. IPC (Inter-Process Communication)
+- Comunicación vía sockets TCP
+- Serialización JSON
+- Event-driven architecture
+
+## 💡 Ventajas de la Arquitectura
+
+1. **Desacoplamiento**: Interfaces independientes del servidor
+2. **Escalabilidad**: Múltiples clientes sin conflictos
+3. **Eficiencia**: Actualizaciones event-driven
+4. **Flexibilidad**: Modo demo cuando no hay servidor
+5. **Modularidad**: Componentes independientes
+
+## 🔍 Debugging
+
+Los logs se guardan en:
+```
+data/logs/hospital.log
 ```
 
-## 🧪 Pruebas
-
-Ejecutar pruebas de concurrencia:
+Ver logs en tiempo real:
 ```bash
-python -m pytest tests/
+# Windows PowerShell
+Get-Content data\logs\hospital.log -Wait
+
+# Linux/Mac
+tail -f data/logs/hospital.log
 ```
 
-## 📈 Ejemplos de Salida
+## 📝 Notas Importantes
 
-### Terminal UI:
-```
-================================================================================
- 🏥 SISTEMA HOSPITALARIO - MONITOR DE CONCURRENCIA
-================================================================================
+- El archivo `main_nuevas_interfaces.py` es legacy (renombrado a `.old`)
+- Puerto por defecto: 5555 (configurable)
+- Las interfaces manejan desconexiones automáticamente
+- Múltiples ventanas funcionan sin interferencia
+- Eventos se transmiten en tiempo real a todos los clientes
 
-📦 BUFFER DE PACIENTES (3/5):
-┌─────────┬─────────┬─────────┬─────────┬─────────┐
-│ [👤]    │ [👤]    │ [👤]    │ [  ]    │ [  ]    │
-└─────────┴─────────┴─────────┴─────────┴─────────┘
-
-📊 ESTADÍSTICAS:
-• Pacientes generados: 45
-• Pacientes atendidos: 42
-• En buffer: 3
-• Expedientes registrados: 42
-
-👥 PRODUCTORES:
-🟢 Productor-1: 23 pacientes generados
-🟢 Productor-2: 22 pacientes generados
-
-🩺 MÉDICOS:
-🟢 Dr. García: 15 pacientes atendidos
-🟢 Dra. Martínez: 14 pacientes atendidos
-🟢 Dr. López: 13 pacientes atendidos
-```
-
-### GUI:
-- **Ventana 1 (Panel de Control)**: Muestra el buffer visual con cuadros de colores, botones interactivos, estadísticas en tiempo real
-- **Ventana 2 (Visualización)**: Diagrama de flujo animado: Productores → Buffer → Médicos → Expedientes
-
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Tecnologías
 
 - **Python 3.8+**: Lenguaje principal
 - **threading**: Manejo de hilos
-- **tkinter**: Interfaz gráfica (GUI)
-- **dataclasses**: Modelado de datos
-- **json**: Persistencia de expedientes
-- **argparse**: Parsing de argumentos CLI
-- **typing**: Type hints para mejor documentación
-
-## 📝 Configuración
-
-Editar `config.py` para modificar:
-```python
-# Configuración del buffer
-CAPACIDAD_BUFFER = 5
-
-# Número de threads
-NUM_PRODUCTORES = 2
-NUM_MEDICOS = 3
-
-# Tiempos de simulación (segundos)
-TIEMPO_GENERACION_MIN = 1
-TIEMPO_GENERACION_MAX = 3
-TIEMPO_ATENCION_MIN = 2
-TIEMPO_ATENCION_MAX = 5
-```
-
-## 🎨 Capturas de Pantalla
-
-### Interfaz Gráfica (GUI)
-- Panel de Control con buffer visual
-- Visualización animada del flujo de datos
-- Estadísticas en tiempo real
-
-### Interfaz de Terminal
-- Vista en tiempo real con colores
-- Buffer ASCII art
-- Log de eventos
+- **socket**: Comunicación cliente-servidor
+- **tkinter**: Interfaces gráficas
+- **json**: Serialización de datos
+- **logging**: Sistema de logs
 
 ## 👥 Autores
 
-- **Equipo de Desarrollo** - Proyecto de Sistemas Operativos
+**Equipo de Desarrollo** - Proyecto de Sistemas Operativos 2025
 
 ## 📄 Licencia
 
-Este proyecto es de uso educativo para la asignatura de Sistemas Operativos.
+Proyecto educativo para la asignatura de Sistemas Operativos.
 
 ## 🎓 Referencias
 
 - Silberschatz, Galvin, Gagne - "Operating System Concepts"
 - Tanenbaum - "Modern Operating Systems"
 - Python Threading Documentation
-- Python Tkinter Documentation
+- Python Socket Programming
 
-## 🚧 Roadmap
+## 📞 Documentación Adicional
 
-- [x] Interfaz de Terminal
-- [x] Interfaz Gráfica (GUI) con 2 ventanas
-- [x] Visualización animada del flujo
-- [ ] Agregar gráficos de rendimiento
-- [ ] Implementar algoritmo de planificación de CPU
-- [ ] Agregar deadlock detection
-- [ ] Dashboard web con Flask
-- [ ] Métricas de rendimiento detalladas
-
-## 🤝 Contribuciones
-
-Las contribuciones son bienvenidas. Por favor:
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add: AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+Ver [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) para documentación detallada de la arquitectura.
 
 ---
 
-⭐ Si te gusta este proyecto, no olvides darle una estrella!
+⭐ **¡Sistema hospitalario con concurrencia real!** 🏥💙
 
-## 📞 Contacto
-
-Proyecto de Sistemas Operativos - Universidad
-
----
-
-**¡Gracias por usar Smart Hospital Systems!** 🏥💙
+**¡Gracias por usar Smart Hospital Systems!**

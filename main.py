@@ -10,6 +10,11 @@ Demuestra:
 - Problema Lectores-Escritores para expedientes médicos
 - Sincronización con threads en Python
 
+Funcionalidad original: Interfaces Terminal y GUI
+
+NOTA: Para ejecutar el servidor del sistema, use servidor.py
+      Este archivo (main.py) mantiene la funcionalidad original
+
 Autor: Equipo de Desarrollo
 Fecha: 2025
 """
@@ -25,7 +30,7 @@ def main():
     
     # Parsear argumentos
     parser = argparse.ArgumentParser(
-        description="Sistema Hospitalario con Concurrencia"
+        description="Sistema Hospitalario con Concurrencia - Funcionalidad Original"
     )
     parser.add_argument(
         "--mode",
@@ -56,7 +61,7 @@ def main():
     
     # Banner de inicio
     print("=" * 80)
-    print(" 🏥 INICIANDO SISTEMA HOSPITALARIO")
+    print(" 🏥 SISTEMA HOSPITALARIO - FUNCIONALIDAD ORIGINAL")
     print("=" * 80)
     print()
     print(f" Configuración:")
@@ -65,6 +70,10 @@ def main():
     print(f" - Productores: {args.productores} threads generando pacientes")
     print(f" - Médicos: {args.medicos} threads atendiendo pacientes")
     print(f" - Sistema de expedientes con Lectores-Escritores")
+    print()
+    print(" 💡 Nota:")
+    print("    Para usar el nuevo servidor con interfaces independientes,")
+    print("    ejecute: python servidor.py")
     print()
     print("=" * 80)
     print()

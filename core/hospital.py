@@ -21,6 +21,7 @@ class Hospital:
     - Productores de pacientes (threads)
     - Médicos consumidores (threads)
     - Sistema de expedientes (Lectores-Escritores)
+    - Servidor de eventos para interfaces
     """
     
     def __init__(self, capacidad_buffer: int = 5, num_productores: int = 2, num_medicos: int = 3):
@@ -46,6 +47,9 @@ class Hospital:
         
         # Guardar capacidad del buffer
         self.capacidad_buffer = capacidad_buffer
+        
+        # Servidor de eventos (se asignará externamente)
+        self.event_server = None
         
         # Inicializar componentes
         self.buffer = BufferPacientes(capacidad_buffer)
