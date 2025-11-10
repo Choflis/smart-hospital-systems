@@ -1,0 +1,67 @@
+{
+  "expedientes": [
+    {
+      "id": 2134,
+      "nombre": "Miguel Ramírez",
+      "prioridad": 3,
+      "diagnostico": "Dolor de pecho",
+      "estado": "Atendido",
+      "hora_llegada": "2025-11-10T00:20:02.134339",
+      "hora_atencion": "2025-11-10T00:20:02.136432",
+      "medico_asignado": "Dra. Martínez",
+      "tiempo_espera": 0.002093,
+      "fecha_registro": "2025-11-10T00:20:03.909197"
+    },
+    {
+      "id": 2132,
+      "nombre": "Antonio Díaz",
+      "prioridad": 2,
+      "diagnostico": "Fractura de brazo",
+      "estado": "Atendido",
+      "hora_llegada": "2025-11-10T00:20:02.132619",
+      "hora_atencion": "2025-11-10T00:20:02.136432",
+      "medico_asignado": "Dr. García",
+      "tiempo_espera": 0.003813,
+      "fecha_registro": "2025-11-10T00:20:05.197016"
+    },
+    {
+      "id": 5299,
+      "nombre": "José Hernández",
+      "prioridad": 1,
+      "diagnostico": "Dolor abdominal agudo",
+      "estado": "Atendido",
+      "hora_llegada": "2025-11-10T00:20:05.299170",
+      "hora_atencion": "2025-11-10T00:20:05.300184",
+      "medico_asignado": "Dr. López",
+      "tiempo_espera": 0.001014,
+      "fecha_registro": "2025-11-10T00:20:09.348314"
+    },
+    {
+      "id": 6502,
+      "nombre": "María García",
+      "prioridad": 3,
+      "diagnostico": "Herida profunda",
+      "estado": "Atendido",
+      "hora_llegada": "2025-11-10T00:20:06.502247",
+      "hora_atencion": "2025-11-10T00:20:06.502247",
+      "medico_asignado": "Dra. Martínez",
+      "tiempo_espera": 0.0,
+      "fecha_registro": "2025-11-10T00:20:09.366127"
+    },
+    {
+      "id": 9617,
+      "nombre": "Luis Rodríguez",
+      "prioridad": 1,
+      "diagnostico": "Dificultad respiratoria",
+      "estado": "Atendido",
+      "hora_llegada": "2025-11-10T00:20:09.617613",
+      "hora_atencion": "2025-11-10T00:20:09.617613",
+      "medico_asignado": "Dr. García",
+      "tiempo_espera": 0.0,
+      "fecha_registro": "2025-11-10T00:20:14.568236"
+    }
+  ],
+  "metadata": {
+    "creado": "2025-11-10T00:20:02.130467"
+  }
+}

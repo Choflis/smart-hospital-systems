@@ -1,21 +1,25 @@
+# config.py
 """
-Archivo de configuración global del sistema Smart Hospital
+Archivo de configuración del sistema hospitalario
 """
 
-# ---- Configuración del buffer (para Productor–Consumidor) ----
-BUFFER_SIZE = 5          # Tamaño máximo de la cola (buffer)
+# Configuración del buffer
+BUFFER_CAPACITY = 5
 
-# ---- Configuración de hilos ----
-NUM_PRODUCTORES = 2       # Cantidad de productores (p. ej., recepción de pacientes)
-NUM_CONSUMIDORES = 3      # Cantidad de consumidores (p. ej., médicos que atienden)
+# Configuración de productores
+NUM_PRODUCTORES = 2
+PRODUCTOR_INTERVALO_MIN = 2  # segundos
+PRODUCTOR_INTERVALO_MAX = 5  # segundos
 
-# ---- Configuración de API REST ----
-API_HOST = "0.0.0.0"
-API_PORT = 8000
+# Configuración de médicos (consumidores)
+NUM_MEDICOS = 3
 
-# ---- Interfaz gráfica ----
-UI_ENABLED = True         # Si se activa la interfaz visual (PyQt/Tkinter)
-UI_REFRESH_INTERVAL = 1000  # ms
+# Configuración de expedientes
+EXPEDIENTES_FILE = "data/expedientes.json"
 
-# ---- Logging ----
-LOG_FILE = "eventos.log"  # Archivo donde se guardan los logs (opcional)
+# Configuración de logs
+LOG_FILE = "data/logs/hospital.log"
+LOG_LEVEL = "INFO"
+
+# Configuración de UI
+UI_REFRESH_INTERVAL = 2  # segundos

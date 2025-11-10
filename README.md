@@ -1,243 +1,308 @@
-# Simulación de Concurrencia en un Hospital Digital
-![Banner](https://www.python.org/static/community_logos/python-logo-master-v3-TM.png)
+# 🏥 Smart Hospital Systems - Sistema de Concurrencia
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
-[![Estado](https://img.shields.io/badge/Estado-Prototipo-green)](https://github.com/Choflis/smart-hospital-systems)
+Sistema hospitalario que demuestra conceptos de **Sistemas Operativos** utilizando **concurrencia** en Python con **2 interfaces**: Terminal y GUI.
 
----
+## 📋 Descripción
 
-Índice
-- Descripción general
-- Objetivos
-- Características y motivación
-- Estructura del proyecto
-- Arquitectura y diagramas
-- Explicación de los módulos
-- Modelos teóricos aplicados
-- Técnicas de sincronización y prevención de fallos
-- Ejecución y ejemplos de salida
-- Pruebas y validación
-- Conclusiones
-- Recursos e imágenes
+Este proyecto implementa un sistema hospitalario que simula:
+- **Problema Productor-Consumidor**: Generación y atención de pacientes
+- **Problema Lectores-Escritores**: Gestión de expedientes médicos
+- **Sincronización con Threads**: Coordinación entre múltiples procesos
 
----
+## 🚀 Características
 
-Descripción general
--------------------
-Esta entrega contiene el README del proyecto: "Simulación de procesos concurrentes en un sistema hospitalario digital". La simulación representa actores típicos de un entorno hospitalario digital (productores de eventos, consumidores/servicios, lectores de historiales y escritores que actualizan expedientes) y demuestra, de forma práctica, cómo se usan los conceptos de Sistemas Operativos —concurrencia, sincronización, semáforos, mutex, procesos/hilos y recursos compartidos— para garantizar integridad y coherencia de datos.
+### ✅ Concurrencia Implementada
+- ✅ Semáforos manuales (sin usar `threading.Semaphore`)
+- ✅ Locks para exclusión mutua
+- ✅ Variables de condición
+- ✅ Buffer circular con productores y consumidores
+- ✅ Sistema de lectores-escritores para expedientes
 
-El proyecto está pensado como una herramienta didáctica y demostrativa: reproduce contenciones reales sobre un recurso compartido (un archivo JSON que actúa como base de datos simulada) usando primitivos de Python (threading / multiprocessing) y protocolos clásicos (Productor–Consumidor, Lectores–Escritores).
+### 🎯 Componentes del Sistema
+1. **Productores** (Threads): Generan pacientes aleatoriamente
+2. **Buffer**: Cola de espera con capacidad limitada (problema del buffer limitado)
+3. **Consumidores/Médicos** (Threads): Atienden pacientes del buffer
+4. **Sistema de Expedientes**: Almacenamiento con control de concurrencia (Lectores-Escritores)
 
-Objetivos
----------
-Objetivo general
-- Diseñar una simulación que demuestre la coordinación segura de procesos concurrentes en un hospital digital, evitando pérdida o duplicación de datos.
+### 🖥️ Interfaces Disponibles
+- **Terminal UI**: Interfaz en consola con actualización en tiempo real
+- **GUI (2 Ventanas)**: 
+  - **Ventana 1**: Panel de Control con estadísticas y controles
+  - **Ventana 2**: Visualización animada del flujo de datos
 
-Objetivos específicos
-- Implementar módulos independientes: productor, consumidor, lector, escritor y almacenamiento.
-- Controlar acceso concurrente a una base de datos simulada (JSON) mediante semáforos y locks.
-- Documentar las técnicas para evitar condiciones de carrera y deadlocks.
-- Mostrar resultados reproducibles y trazas claras de ejecución.
+## 📁 Estructura del Proyecto
 
-Características y motivación
-----------------------------
-- Simulación modular (cada rol en su propio módulo).
-- Uso de semáforos, Locks y protocolo Lectores–Escritores.
-- Buffer limitado (bounded buffer) para Productor–Consumidor.
-- Mensajes de trazabilidad: cada módulo imprime inicio, procesamiento y finalización.
-- Enfoque pedagógico: reproducible, fácil de entender y extender.
-
-Estructura del proyecto
------------------------
-Raíz propuesta:
-
-1. main.py
-   - Entrada principal que inicializa la simulación y los hilos.
-
-2. config.py
-   - Configuraciones generales: tamaño del buffer, número de médicos, tiempos de espera.
-
-3. models/
-   - __init__.py
-   - productor_consumidor.py
-     - Implementa el modelo Productor–Consumidor usando threading.Semaphore y Lock.
-   - lectores_escritor.py
-     - Implementa el modelo Lectores–Escritor con contador de lectores y exclusión mutua para escritores.
-
-4. hospital/
-   - __init__.py
-   - medico.py
-     - Clase Médico, genera diagnósticos aleatorios.
-   - laboratorio.py
-     - Clase Laboratorio, consume diagnósticos y devuelve resultados.
-   - base_datos.py
-     - Clase BaseDeDatos, buffer compartido thread-safe.
-   - estadisticas.py
-     - Clase Estadisticas, lectores concurrentes que leen datos.
-   - direccion_medica.py
-     - Clase DireccionMedica, escritor exclusivo.
-
-5. utils/
-   - __init__.py
-   - logger.py
-     - Funciones para imprimir logs o eventos de la simulación.
-   - generador_datos.py
-     - Funciones para generar diagnósticos aleatorios.
-
-6. tests/
-   - test_productor_consumidor.py
-     - Pruebas unitarias del modelo Productor–Consumidor.
-   - test_lectores_escritor.py
-     - Pruebas unitarias del modelo Lectores–Escritor.
+```
+smart-hospital-systems/
+├── core/                      # Lógica principal
+│   ├── hospital.py           # Gestión del sistema hospitalario
+│   ├── paciente.py           # Modelo de paciente
+│   └── expedientes.py        # Sistema de expedientes (Lectores-Escritores)
+├── concurrencia/             # Primitivas de concurrencia
+│   ├── semaforo_manual.py    # Implementación de semáforo sin usar threading.Semaphore
+│   └── buffer.py             # Buffer circular con sincronización
+├── ui/                       # Interfaces de usuario
+│   ├── terminal_ui.py        # Interfaz en terminal
+│   └── gui_app.py           # Interfaz gráfica con 2 ventanas
+├── data/                     # Datos persistentes
+│   └── expedientes.json      # Expedientes médicos guardados
+├── docs/                     # Documentación
+│   └── explicacion_concurrencia.md
+├── tests/                    # Pruebas
+│   └── test_concurrencia.py
+├── main.py                   # Punto de entrada
+├── config.py                 # Configuración
+└── requirements.txt          # Dependencias
 ```
 
-Arquitectura y diagramas (visual)
----------------------------------
-Diagrama general (Productores ↔ Buffer ↔ Consumidores; Lectores/Escritores ↔ Almacenamiento):
+## 🔧 Instalación
 
-![Diagrama Productor-Consumidor](https://upload.wikimedia.org/wikipedia/commons/1/12/Producerconsumer.svg)
+### Requisitos Previos
+- Python 3.8 o superior
+- pip (gestor de paquetes de Python)
+- tkinter (viene incluido con Python en Windows y Mac)
 
-Esquema Lectores–Escritores:
+### Pasos de Instalación
 
-![Diagrama Lectores-Escritores](https://miro.medium.com/v2/resize:fit:786/1*2JQn4vR0e-gj60mK1j6mXw.png)
+1. **Clonar el repositorio**
+```bash
+git clone <url-del-repositorio>
+cd smart-hospital-systems
+```
 
-Representación temática (hospital digital):
+2. **Crear entorno virtual** (recomendado)
+```bash
+python -m venv venv
 
-![Hospital Digital - ejemplo](https://cdn.pixabay.com/photo/2018/01/14/23/12/hospital-3081724_1280.jpg)
+# En Windows:
+venv\Scripts\activate
 
-Diseño tipo "mini-banner" (logo Python para identidad visual):
+# En Linux/Mac:
+source venv/bin/activate
+```
 
-![Python logo](https://www.python.org/static/community_logos/python-logo-master-v3-TM.png)
+3. **Instalar dependencias**
+```bash
+pip install -r requirements.txt
+```
 
-Explicación de los módulos
---------------------------
-- almacenamiento.py  
-  - Encapsula acceso al recurso compartido (data/pacientes.json). Implementa un mutex (Lock) para lecturas/escrituras atómicas al archivo y funciones: leer_todos(), agregar_registro(), actualizar_registro().
-  - Proporciona API mínima para ser usada por productores, consumidores y escritores.
+## 🎮 Uso
 
-- productor.py  
-  - Simula generación de eventos clínicos (ingresos, lecturas de monitor, órdenes). Usa semáforos y mutex para insertar en el buffer limitado.
-  - Mensajes: inicio, producido (con id), finalización.
+### 🖥️ Opción 1: Interfaz Gráfica (GUI) - RECOMENDADO
 
-- consumidor.py  
-  - Procesa eventos del buffer (simula tratamiento, notificación, cálculo). Consume sin duplicar; registra acciones en almacenamiento si aplica.
-  - Mensajes: inicio, consumiendo (id), procesado, finalización.
+```bash
+python main.py
+```
+o explícitamente:
+```bash
+python main.py --mode gui
+```
 
-- lector.py  
-  - Accede solo en modo lectura al almacenamiento (consultas de historial). Implementa el protocolo lectores–escritores: permite lectores concurrentes mientras no haya escritor activo.
-  - Mensajes: inicio, leyó N registros, finalización.
+Se abrirán **2 ventanas**:
+1. **Panel de Control**: Controles, estadísticas, buffer visual, log de eventos
+2. **Visualización de Flujo**: Diagrama animado del flujo de concurrencia
 
-- escritor.py  
-  - Realiza modificaciones al almacenamiento (actualizar expediente, crear anotaciones). Requiere acceso exclusivo.
-  - Mensajes: inicio, escribió registro, finalización.
+**Controles en el Panel:**
+- ▶️ **INICIAR**: Inicia el sistema hospitalario
+- ⏸️ **PAUSAR**: Pausa la simulación
+- ⏹️ **DETENER**: Detiene completamente el sistema
 
-- main.py  
-  - Orquesta la simulación: instancia almacenamiento, buffer, semáforos/locks, crea hilos y los lanza. Permite parametrizar número de productores/consumidores/lectores/escritores y tiempos de producción/consumo.
+### 📟 Opción 2: Interfaz de Terminal
 
-Modelos teóricos aplicados
---------------------------
-- Productor–Consumidor (bounded buffer)
-  - Semáforos: empty (espacios libres, inicializado a buffer_size), full (elementos presentes, inicializado a 0).
-  - Mutex para proteger la estructura del buffer.
-  - Garantiza que productores no sobreescriban y consumidores no lean de buffer vacío.
+```bash
+python main.py --mode terminal
+```
 
-- Lectores–Escritores
-  - Contador de lectores protegido por un lock (reader_count_lock).
-  - writer_lock para exclusión de escritores.
-  - Primer lector adquiere writer_lock; último lector lo libera. Escritores adquieren writer_lock para exclusión.
+El sistema mostrará:
+- Estado del buffer en tiempo real
+- Pacientes siendo generados
+- Médicos atendiendo pacientes
+- Estadísticas de concurrencia
+- Log de eventos
 
-Técnicas de sincronización y prevención de fallos
--------------------------------------------------
-1. Protecciones básicas
-   - Locks (threading.Lock) para secciones críticas.
-   - Semáforos (threading.Semaphore) para coordinar conteos en buffer.
-2. Evitar condiciones de carrera
-   - Toda lectura-modificación-escritura en estructuras compartidas ocurre dentro de una sección crítica protegida.
-   - Contadores compartidos (p. ej., reader_count) solo se modifican con su lock.
-3. Evitar deadlocks
-   - Orden global para adquisición de locks (por ejemplo: buffer_lock → file_lock).
-   - Mantener secciones críticas lo más cortas posible.
-   - Uso de timeouts para diagnósticos (opcional).
-4. Evitar pérdida y duplicación de datos
-   - Cada ítem producido recibe un identificador único (uuid).
-   - Consumidores marcan o registran el consumo en almacenamiento si procede.
-   - Transacciones atómicas simuladas con file_lock rodeando lectura-modificación-escritura al JSON.
+**Controles:**
+- **ENTER**: Actualizar vista
+- **Ctrl+C**: Detener el sistema de forma segura
 
-Fragmentos de código (resumen atractivo)
-----------------------------------------
-Un ejemplo de sección crítica en almacenamiento:
+### ⚙️ Opciones Avanzadas
 
+```bash
+# Cambiar tamaño del buffer
+python main.py --buffer-size 10
+
+# Cambiar número de productores
+python main.py --productores 3
+
+# Cambiar número de médicos
+python main.py --medicos 5
+
+# Combinación de opciones
+python main.py --mode gui --buffer-size 8 --productores 3 --medicos 4
+```
+
+**Ayuda:**
+```bash
+python main.py --help
+```
+
+## 📊 Conceptos de Sistemas Operativos Demostrados
+
+### 1. Problema Productor-Consumidor
+- **Productores**: Threads que generan pacientes
+- **Buffer limitado**: Cola de espera con capacidad máxima
+- **Consumidores**: Médicos que atienden pacientes
+- **Sincronización**: Semáforos para evitar condiciones de carrera
+
+### 2. Problema Lectores-Escritores
+- **Escritores**: Médicos registrando expedientes
+- **Lectores**: Consultas de expedientes
+- **Prioridad**: Los escritores tienen prioridad
+- **Exclusión mutua**: Solo un escritor a la vez
+
+### 3. Semáforos Manuales
+Implementación propia sin usar `threading.Semaphore`:
 ```python
-# src/almacenamiento.py (extracto)
-import json, threading
-from pathlib import Path
-
-class AlmacenamientoJSON:
-    def __init__(self, ruta):
-        self.ruta = Path(ruta)
-        self.file_lock = threading.Lock()
-        if not self.ruta.exists():
-            self.ruta.write_text("[]", encoding="utf-8")
-
-    def leer_todos(self):
-        with self.file_lock:
-            with self.ruta.open("r", encoding="utf-8") as f:
-                return json.load(f)
-
-    def agregar_registro(self, registro):
-        with self.file_lock:
-            datos = self.leer_todos()  # lectura segura dentro del lock
-            datos.append(registro)
-            with self.ruta.open("w", encoding="utf-8") as f:
-                json.dump(datos, f, indent=2)
+class SemaforoManual:
+    def __init__(self, valor_inicial):
+        self.valor = valor_inicial
+        self.lock = threading.Lock()
+        self.condition = threading.Condition(self.lock)
+    
+    def wait(self):
+        with self.condition:
+            while self.valor <= 0:
+                self.condition.wait()
+            self.valor -= 1
+    
+    def signal(self):
+        with self.condition:
+            self.valor += 1
+            self.condition.notify()
 ```
 
-Ejecución y ejemplos de salida
-------------------------------
-Instrucciones rápidas
-1. Crear entorno y dependencias (opcional):
-   - python3 -m venv venv
-   - source venv/bin/activate
-   - pip install -r requirements.txt (si aplica)
-2. Preparar datos:
-   - mkdir -p data
-   - echo '[]' > data/pacientes.json
-3. Ejecutar:
-   - python src/main.py
+## 🧪 Pruebas
 
-Mensajes esperados en consola (traza):
-```
-[Productor 0] Iniciado
-[Productor 0] Producido: 8a3f2b...
-[Consumidor 1] Consumiendo: 8a3f2b...
-[Lector 0] Inició lectura concurrente
-[Lector 0] Leyó 12 registros
-[Escritor 1] Iniciado - adquiriendo acceso exclusivo
-[Escritor 1] Escribió un registro
-[Productor 0] Finalizado
+Ejecutar pruebas de concurrencia:
+```bash
+python -m pytest tests/
 ```
 
-Resultados esperados
-- Igual número de ítems producidos y consumidos (bajo condiciones correctas de parada).
-- No deben aparecer duplicados en el procesamiento por consumidores.
-- Lectores concurrentes no bloquean entre sí, salvo la presencia de un escritor activo.
-- Escritores acceden de forma exclusiva.
+## 📈 Ejemplos de Salida
 
-Pruebas y validación
---------------------
-- Prueba de conteo: ejecutar N productores que generen M ítems y validar que almacenamiento contiene N×M registros (o que consumidores han procesado N×M).
-- Prueba de contención: buffer pequeño (p. ej., 2) y muchos productores para forzar semáforos.
-- Prueba Lectores–Escritores: lanzar múltiples lectores concurrentes con escritores programados y validar exclusión.
+### Terminal UI:
+```
+================================================================================
+ 🏥 SISTEMA HOSPITALARIO - MONITOR DE CONCURRENCIA
+================================================================================
 
+📦 BUFFER DE PACIENTES (3/5):
+┌─────────┬─────────┬─────────┬─────────┬─────────┐
+│ [👤]    │ [👤]    │ [👤]    │ [  ]    │ [  ]    │
+└─────────┴─────────┴─────────┴─────────┴─────────┘
 
-Conclusiones
------------
-La simulación ilustra cómo aplicar mecanismos de sincronización para coordinar actores concurrentes en un sistema hospitalario digital. Los patrones Productor–Consumidor y Lectores–Escritores, junto con semáforos y mutex, permiten garantizar integridad de datos y evitar condiciones de carrera y deadlocks si se aplican correctamente. Este repositorio actúa como recurso de aprendizaje y base para experimentación y ampliación hacia entornos más realistas.
+📊 ESTADÍSTICAS:
+• Pacientes generados: 45
+• Pacientes atendidos: 42
+• En buffer: 3
+• Expedientes registrados: 42
 
-Recursos e imágenes (referencias)
---------------------------------
-- Python logo: https://www.python.org/static/community_logos/python-logo-master-v3-TM.png
-- Diagrama Productor–Consumidor: https://upload.wikimedia.org/wikipedia/commons/1/12/Producerconsumer.svg
-- Diagrama Lectores–Escritores: https://miro.medium.com/v2/resize:fit:786/1*2JQn4vR0e-gj60mK1j6mXw.png
-- Hospital (ejemplo visual): https://cdn.pixabay.com/photo/2018/01/14/23/12/hospital-3081724_1280.jpg
+👥 PRODUCTORES:
+🟢 Productor-1: 23 pacientes generados
+🟢 Productor-2: 22 pacientes generados
 
+🩺 MÉDICOS:
+🟢 Dr. García: 15 pacientes atendidos
+🟢 Dra. Martínez: 14 pacientes atendidos
+🟢 Dr. López: 13 pacientes atendidos
+```
+
+### GUI:
+- **Ventana 1 (Panel de Control)**: Muestra el buffer visual con cuadros de colores, botones interactivos, estadísticas en tiempo real
+- **Ventana 2 (Visualización)**: Diagrama de flujo animado: Productores → Buffer → Médicos → Expedientes
+
+## 🛠️ Tecnologías Utilizadas
+
+- **Python 3.8+**: Lenguaje principal
+- **threading**: Manejo de hilos
+- **tkinter**: Interfaz gráfica (GUI)
+- **dataclasses**: Modelado de datos
+- **json**: Persistencia de expedientes
+- **argparse**: Parsing de argumentos CLI
+- **typing**: Type hints para mejor documentación
+
+## 📝 Configuración
+
+Editar `config.py` para modificar:
+```python
+# Configuración del buffer
+CAPACIDAD_BUFFER = 5
+
+# Número de threads
+NUM_PRODUCTORES = 2
+NUM_MEDICOS = 3
+
+# Tiempos de simulación (segundos)
+TIEMPO_GENERACION_MIN = 1
+TIEMPO_GENERACION_MAX = 3
+TIEMPO_ATENCION_MIN = 2
+TIEMPO_ATENCION_MAX = 5
+```
+
+## 🎨 Capturas de Pantalla
+
+### Interfaz Gráfica (GUI)
+- Panel de Control con buffer visual
+- Visualización animada del flujo de datos
+- Estadísticas en tiempo real
+
+### Interfaz de Terminal
+- Vista en tiempo real con colores
+- Buffer ASCII art
+- Log de eventos
+
+## 👥 Autores
+
+- **Equipo de Desarrollo** - Proyecto de Sistemas Operativos
+
+## 📄 Licencia
+
+Este proyecto es de uso educativo para la asignatura de Sistemas Operativos.
+
+## 🎓 Referencias
+
+- Silberschatz, Galvin, Gagne - "Operating System Concepts"
+- Tanenbaum - "Modern Operating Systems"
+- Python Threading Documentation
+- Python Tkinter Documentation
+
+## 🚧 Roadmap
+
+- [x] Interfaz de Terminal
+- [x] Interfaz Gráfica (GUI) con 2 ventanas
+- [x] Visualización animada del flujo
+- [ ] Agregar gráficos de rendimiento
+- [ ] Implementar algoritmo de planificación de CPU
+- [ ] Agregar deadlock detection
+- [ ] Dashboard web con Flask
+- [ ] Métricas de rendimiento detalladas
+
+## 🤝 Contribuciones
+
+Las contribuciones son bienvenidas. Por favor:
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add: AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+---
+
+⭐ Si te gusta este proyecto, no olvides darle una estrella!
+
+## 📞 Contacto
+
+Proyecto de Sistemas Operativos - Universidad
+
+---
+
+**¡Gracias por usar Smart Hospital Systems!** 🏥💙
