@@ -23,9 +23,18 @@ import socket
 import json
 import sys
 import os
+import random
+import time
 
 # Agregar directorio raíz al path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Ruta del archivo de expedientes
+EXPEDIENTES_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'data',
+    'expedientes.json'
+)
 
 
 class PanelHospital(tk.Toplevel):
@@ -69,6 +78,15 @@ class PanelHospital(tk.Toplevel):
         
         # Datos de médicos y pacientes
         self.medicos_data = {}  # {nombre_medico: [lista_pacientes]}
+        
+        # Diccionario para tracking de expedientes (para calcular tiempos)
+        self.expedientes_tracking = {}  # {paciente_id: datos_temporales}
+        
+        # Variables de simulación interna
+        self.simulacion_activa = False
+        self.threads_simulacion = []
+        self.paciente_id_counter = 1000
+        self.medicos_simulados = ["Dr. García", "Dra. Martínez", "Dr. López"]
         
         self._crear_interfaz()
         self._conectar_servidor()
@@ -239,6 +257,7 @@ class PanelHospital(tk.Toplevel):
         self.text_logs.tag_config("warning", foreground="#f39c12")
         self.text_logs.tag_config("error", foreground="#e74c3c")
         self.text_logs.tag_config("timestamp", foreground="#95a5a6")
+        self.text_logs.tag_config("separator", foreground="#5d6d7e")
         
         # Log inicial
         self._agregar_log("Sistema iniciado", "info")
@@ -248,15 +267,35 @@ class PanelHospital(tk.Toplevel):
         frame_medicos_container = tk.Frame(frame_main, bg="#ecf0f1")
         frame_medicos_container.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
         
+        # Frame para título y botón
+        frame_titulo_medicos = tk.Frame(frame_medicos_container, bg="#3498db")
+        frame_titulo_medicos.pack(fill=tk.X)
+        
         # Título
         tk.Label(
-            frame_medicos_container,
+            frame_titulo_medicos,
             text="👨‍⚕️ MÉDICOS Y PACIENTES ASIGNADOS",
             font=("Arial", 14, "bold"),
             bg="#3498db",
             fg="white",
             pady=10
-        ).pack(fill=tk.X)
+        ).pack(side=tk.LEFT, padx=20)
+        
+        # Botón de simulación
+        self.btn_simulacion = tk.Button(
+            frame_titulo_medicos,
+            text="▶️ Iniciar Simulación",
+            font=("Arial", 11, "bold"),
+            bg="#27ae60",
+            fg="white",
+            activebackground="#229954",
+            activeforeground="white",
+            cursor="hand2",
+            relief=tk.RAISED,
+            borderwidth=3,
+            command=self._toggle_simulacion
+        )
+        self.btn_simulacion.pack(side=tk.RIGHT, padx=20, pady=5)
         
         # Canvas con scrollbar para médicos
         canvas = tk.Canvas(frame_medicos_container, bg="#ecf0f1", highlightthickness=0)
@@ -334,13 +373,17 @@ class PanelHospital(tk.Toplevel):
         # Separador
         ttk.Separator(frame_medico, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
         
-        # Lista de pacientes
+        # Contenedor horizontal para pacientes
+        frame_pacientes_container = tk.Frame(frame_medico, bg="white")
+        frame_pacientes_container.pack(fill=tk.BOTH, expand=True)
+        
+        # Lista de pacientes apilados horizontalmente
         if pacientes:
             for paciente in pacientes:
-                self._crear_tarjeta_paciente(frame_medico, paciente)
+                self._crear_tarjeta_paciente(frame_pacientes_container, paciente)
         else:
             tk.Label(
-                frame_medico,
+                frame_pacientes_container,
                 text="Sin pacientes asignados",
                 font=("Arial", 10, "italic"),
                 bg="white",
@@ -349,57 +392,52 @@ class PanelHospital(tk.Toplevel):
     
     def _crear_tarjeta_paciente(self, parent, paciente):
         """Crear una tarjeta individual de paciente"""
-        # Frame de la tarjeta
+        # Frame de la tarjeta (apilado horizontalmente)
         frame_tarjeta = tk.Frame(
             parent,
             bg="#ecf0f1",
             relief=tk.SOLID,
-            borderwidth=1
+            borderwidth=1,
+            width=160,
+            height=120
         )
-        frame_tarjeta.pack(fill=tk.X, pady=3)
+        frame_tarjeta.pack(side=tk.LEFT, padx=3, pady=5)
+        frame_tarjeta.pack_propagate(False)
         
         # Contenido de la tarjeta
-        frame_contenido = tk.Frame(frame_tarjeta, bg="#ecf0f1", padx=10, pady=8)
-        frame_contenido.pack(fill=tk.X)
+        frame_contenido = tk.Frame(frame_tarjeta, bg="#ecf0f1", padx=6, pady=6)
+        frame_contenido.pack(fill=tk.BOTH, expand=True)
         
         # Nombre del paciente
         tk.Label(
             frame_contenido,
             text=f"👤 {paciente['nombre']}",
-            font=("Arial", 11, "bold"),
+            font=("Arial", 9, "bold"),
             bg="#ecf0f1",
             fg="#2c3e50",
-            anchor="w"
-        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=2)
+            anchor="w",
+            wraplength=145
+        ).pack(fill=tk.X, pady=(0, 4))
         
-        # DNI y Edad
+        # DNI
         tk.Label(
             frame_contenido,
             text=f"DNI: {paciente['dni']}",
-            font=("Arial", 9),
+            font=("Arial", 8),
             bg="#ecf0f1",
             fg="#7f8c8d",
             anchor="w"
-        ).grid(row=1, column=0, sticky="w")
+        ).pack(fill=tk.X, pady=1)
         
+        # Edad
         tk.Label(
             frame_contenido,
             text=f"Edad: {paciente['edad']} años",
-            font=("Arial", 9),
+            font=("Arial", 8),
             bg="#ecf0f1",
             fg="#7f8c8d",
             anchor="w"
-        ).grid(row=1, column=1, sticky="w", padx=10)
-        
-        # Fecha de registro
-        tk.Label(
-            frame_contenido,
-            text=f"📅 Registro: {paciente['fecha_registro']}",
-            font=("Arial", 9),
-            bg="#ecf0f1",
-            fg="#7f8c8d",
-            anchor="w"
-        ).grid(row=2, column=0, columnspan=2, sticky="w", pady=2)
+        ).pack(fill=tk.X, pady=1)
         
         # Estado
         estado = paciente.get('estado', 'En espera')
@@ -411,12 +449,12 @@ class PanelHospital(tk.Toplevel):
         
         tk.Label(
             frame_contenido,
-            text=f"🔔 {estado}",
-            font=("Arial", 9, "bold"),
+            text=f"● {estado}",
+            font=("Arial", 8, "bold"),
             bg="#ecf0f1",
             fg=color_estado,
             anchor="w"
-        ).grid(row=3, column=0, columnspan=2, sticky="w", pady=2)
+        ).pack(fill=tk.X, pady=(4, 0))
     
     def _actualizar_reloj(self):
         """Actualizar el reloj en tiempo real"""
@@ -427,11 +465,47 @@ class PanelHospital(tk.Toplevel):
         self.label_reloj.config(text=f"🕐 {ahora}")
         self.after(1000, self._actualizar_reloj)
     
-    def _agregar_log(self, mensaje, tipo="info"):
+    def _cargar_expedientes(self):
+        """Cargar expedientes existentes desde el archivo JSON"""
+        try:
+            os.makedirs(os.path.dirname(EXPEDIENTES_FILE), exist_ok=True)
+            if os.path.exists(EXPEDIENTES_FILE):
+                with open(EXPEDIENTES_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    return data.get('expedientes', [])
+            return []
+        except Exception as e:
+            print(f"Error cargando expedientes: {e}")
+            return []
+    
+    def _guardar_expediente(self, expediente):
+        """Guardar un expediente en el archivo JSON"""
+        try:
+            os.makedirs(os.path.dirname(EXPEDIENTES_FILE), exist_ok=True)
+            
+            # Cargar expedientes existentes
+            expedientes = self._cargar_expedientes()
+            
+            # Agregar nuevo expediente
+            expedientes.append(expediente)
+            
+            # Guardar todo de vuelta
+            with open(EXPEDIENTES_FILE, 'w', encoding='utf-8') as f:
+                json.dump({'expedientes': expedientes}, f, indent=2, ensure_ascii=False)
+                
+        except Exception as e:
+            print(f"Error guardando expediente: {e}")
+    
+    def _agregar_log(self, mensaje, tipo="info", agregar_separador=False):
         """Agregar un mensaje al log"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         
         self.text_logs.config(state=tk.NORMAL)
+        
+        # Agregar separador si se solicita
+        if agregar_separador:
+            self.text_logs.insert(tk.END, "─" * 30 + "\n", "separator")
+        
         self.text_logs.insert(tk.END, f"[{timestamp}] ", "timestamp")
         self.text_logs.insert(tk.END, f"{mensaje}\n", tipo)
         self.text_logs.see(tk.END)
@@ -444,13 +518,18 @@ class PanelHospital(tk.Toplevel):
         if doctor and doctor in self.medicos_data:
             self.medicos_data[doctor].append(paciente_data)
             
-            # Log
+            # Log con separador
             self._agregar_log(
-                f"Paciente {paciente_data.get('nombre', 'N/A')} registrado",
+                f"🆕 Nuevo paciente registrado",
+                "info",
+                agregar_separador=True
+            )
+            self._agregar_log(
+                f"Paciente: {paciente_data.get('nombre', 'N/A')}",
                 "success"
             )
             self._agregar_log(
-                f"Asignado a {doctor}",
+                f"Asignado a: {doctor}",
                 "info"
             )
             
@@ -464,7 +543,16 @@ class PanelHospital(tk.Toplevel):
                 if paciente['id'] == paciente_id:
                     paciente['estado'] = nuevo_estado
                     self._agregar_log(
-                        f"Paciente ID {paciente_id}: {nuevo_estado}",
+                        f"📋 Estado actualizado",
+                        "warning",
+                        agregar_separador=True
+                    )
+                    self._agregar_log(
+                        f"Paciente: {paciente.get('nombre', 'N/A')}",
+                        "info"
+                    )
+                    self._agregar_log(
+                        f"Estado: {nuevo_estado}",
                         "warning"
                     )
                     self._crear_bloques_medicos()
@@ -473,6 +561,267 @@ class PanelHospital(tk.Toplevel):
     def _iniciar_actualizaciones(self):
         """Ya no se usan actualizaciones por polling - ahora es event-driven"""
         pass
+    
+    def _toggle_simulacion(self):
+        """Alternar entre iniciar y pausar simulación"""
+        if not self.simulacion_activa:
+            self._iniciar_simulacion()
+        else:
+            self._pausar_simulacion()
+    
+    def _iniciar_simulacion(self):
+        """Inicia la simulación interna de pacientes"""
+        self.simulacion_activa = True
+        self.btn_simulacion.config(
+            text="⏸️ Pausar Simulación",
+            bg="#e74c3c"
+        )
+        self._agregar_log("🚀 Simulación iniciada", "success", agregar_separador=True)
+        
+        # Inicializar médicos si no existen
+        if not self.medicos_data:
+            for medico in self.medicos_simulados:
+                self.medicos_data[medico] = []
+            self._crear_bloques_medicos()
+        
+        # Crear threads productores (generadores de pacientes)
+        for i in range(2):  # 2 productores
+            thread = threading.Thread(
+                target=self._productor_pacientes,
+                args=(f"Productor-{i+1}",),
+                daemon=True
+            )
+            thread.start()
+            self.threads_simulacion.append(thread)
+        
+        # Crear threads consumidores (médicos atendiendo)
+        for medico in self.medicos_simulados:
+            thread = threading.Thread(
+                target=self._consumidor_pacientes,
+                args=(medico,),
+                daemon=True
+            )
+            thread.start()
+            self.threads_simulacion.append(thread)
+    
+    def _pausar_simulacion(self):
+        """Pausa la simulación"""
+        self.simulacion_activa = False
+        self.btn_simulacion.config(
+            text="▶️ Iniciar Simulación",
+            bg="#27ae60"
+        )
+        self._agregar_log("⏸️ Simulación pausada", "warning", agregar_separador=True)
+        self.threads_simulacion.clear()
+    
+    def _productor_pacientes(self, nombre_productor):
+        """Thread productor que genera pacientes automáticamente"""
+        nombres = [
+            "Juan Pérez", "María García", "Carlos López", "Ana Martínez",
+            "Luis Rodríguez", "Carmen Sánchez", "José Hernández", "Laura Torres",
+            "Miguel Ramírez", "Isabel Flores", "Pedro Jiménez", "Rosa Morales"
+        ]
+        
+        diagnosticos = [
+            "Fractura de brazo", "Dolor abdominal", "Fiebre alta",
+            "Dolor de pecho", "Herida profunda", "Dificultad respiratoria",
+            "Mareos y náuseas", "Dolor de cabeza", "Esguince de tobillo"
+        ]
+        
+        while self.simulacion_activa:
+            try:
+                # Generar paciente aleatorio
+                paciente = {
+                    'id': self.paciente_id_counter,
+                    'nombre': random.choice(nombres),
+                    'apellidos': '',
+                    'dni': f"{random.randint(10000000, 99999999)}",
+                    'telefono': f"9{random.randint(10000000, 99999999)}",
+                    'edad': random.randint(18, 85),
+                    'genero': random.choice(['Masculino', 'Femenino']),
+                    'prioridad': random.choice(['Baja', 'Normal', 'Urgente']),
+                    'sintomas': random.choice(diagnosticos),
+                    'fecha_registro': datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    'estado': 'Esperando',
+                    'doctor': random.choice(self.medicos_simulados)
+                }
+                self.paciente_id_counter += 1
+                
+                # Agregar a la UI
+                self.after(0, lambda p=paciente: self._agregar_paciente_simulado(p, nombre_productor))
+                
+                # Esperar tiempo aleatorio (2-5 segundos)
+                time.sleep(random.uniform(2, 5))
+                
+            except Exception as e:
+                break
+    
+    def _consumidor_pacientes(self, medico_nombre):
+        """Thread consumidor que atiende pacientes"""
+        while self.simulacion_activa:
+            try:
+                # Buscar pacientes del médico
+                pacientes = self.medicos_data.get(medico_nombre, [])
+                pacientes_esperando = [p for p in pacientes if p['estado'] == 'Esperando']
+                
+                if pacientes_esperando:
+                    # Atender el primer paciente
+                    paciente = pacientes_esperando[0]
+                    
+                    # Cambiar estado a "Atendiendo"
+                    self.after(0, lambda: self._cambiar_estado_paciente(paciente['id'], 'Atendiendo', medico_nombre))
+                    
+                    # Simular tiempo de atención (3-6 segundos)
+                    tiempo_atencion = random.uniform(3, 6)
+                    time.sleep(tiempo_atencion)
+                    
+                    # Completar atención
+                    self.after(0, lambda: self._completar_atencion(paciente['id'], medico_nombre))
+                else:
+                    # No hay pacientes, esperar
+                    time.sleep(1)
+                    
+            except Exception as e:
+                break
+    
+    def _agregar_paciente_simulado(self, paciente, productor):
+        """Agrega un paciente generado por la simulación"""
+        medico = paciente['doctor']
+        if medico in self.medicos_data:
+            self.medicos_data[medico].append(paciente)
+            
+            # Registrar hora de llegada para el tracking
+            self.expedientes_tracking[paciente['id']] = {
+                'nombre': paciente['nombre'],
+                'prioridad': self._convertir_prioridad_texto_a_numero(paciente['prioridad']),
+                'diagnostico': paciente['sintomas'],
+                'hora_llegada': datetime.now().isoformat(),
+                'medico_asignado': medico,
+                'estado': 'En espera'
+            }
+            
+            self._agregar_log(
+                f"🆕 Nuevo paciente generado",
+                "success",
+                agregar_separador=True
+            )
+            self._agregar_log(
+                f"Productor: {productor}",
+                "info"
+            )
+            self._agregar_log(
+                f"Paciente: {paciente['nombre']}",
+                "success"
+            )
+            self._agregar_log(
+                f"Prioridad: {paciente['prioridad']}",
+                "info"
+            )
+            self._agregar_log(
+                f"Asignado a: {medico}",
+                "info"
+            )
+            
+            self._crear_bloques_medicos()
+    
+    def _convertir_prioridad_texto_a_numero(self, prioridad_texto):
+        """Convierte prioridad de texto a número"""
+        conversion = {
+            'Baja': 1,
+            'Normal': 2,
+            'Urgente': 3
+        }
+        return conversion.get(prioridad_texto, 2)
+    
+    def _cambiar_estado_paciente(self, paciente_id, nuevo_estado, medico_nombre):
+        """Cambia el estado de un paciente"""
+        if medico_nombre in self.medicos_data:
+            for paciente in self.medicos_data[medico_nombre]:
+                if paciente['id'] == paciente_id:
+                    paciente['estado'] = nuevo_estado
+                    
+                    # Registrar hora de atención
+                    if paciente_id in self.expedientes_tracking:
+                        self.expedientes_tracking[paciente_id]['hora_atencion'] = datetime.now().isoformat()
+                        self.expedientes_tracking[paciente_id]['estado'] = 'En atención'
+                    
+                    self._agregar_log(
+                        f"🩺 Atención iniciada",
+                        "info",
+                        agregar_separador=True
+                    )
+                    self._agregar_log(
+                        f"Médico: {medico_nombre}",
+                        "info"
+                    )
+                    self._agregar_log(
+                        f"Paciente: {paciente['nombre']}",
+                        "info"
+                    )
+                    
+                    self._crear_bloques_medicos()
+                    break
+    
+    def _completar_atencion(self, paciente_id, medico_nombre):
+        """Completa la atención y remueve al paciente"""
+        if medico_nombre in self.medicos_data:
+            pacientes = self.medicos_data[medico_nombre]
+            for i, paciente in enumerate(pacientes):
+                if paciente['id'] == paciente_id:
+                    nombre_paciente = paciente['nombre']
+                    
+                    # Crear expediente completo
+                    if paciente_id in self.expedientes_tracking:
+                        tracking = self.expedientes_tracking[paciente_id]
+                        hora_llegada = datetime.fromisoformat(tracking['hora_llegada'])
+                        hora_atencion = datetime.fromisoformat(tracking['hora_atencion'])
+                        hora_fin = datetime.now()
+                        
+                        # Calcular tiempo de espera
+                        tiempo_espera = (hora_atencion - hora_llegada).total_seconds()
+                        
+                        # Crear expediente con la estructura correcta
+                        expediente = {
+                            'id': paciente_id,
+                            'nombre': tracking['nombre'],
+                            'prioridad': tracking['prioridad'],
+                            'diagnostico': tracking['diagnostico'],
+                            'estado': 'Atendido',
+                            'hora_llegada': tracking['hora_llegada'],
+                            'hora_atencion': tracking['hora_atencion'],
+                            'medico_asignado': tracking['medico_asignado'],
+                            'tiempo_espera': round(tiempo_espera, 6),
+                            'fecha_registro': hora_fin.isoformat()
+                        }
+                        
+                        # Guardar en el archivo JSON
+                        self._guardar_expediente(expediente)
+                        
+                        # Limpiar tracking
+                        del self.expedientes_tracking[paciente_id]
+                    
+                    del pacientes[i]
+                    
+                    self._agregar_log(
+                        f"✅ Atención completada",
+                        "success",
+                        agregar_separador=True
+                    )
+                    self._agregar_log(
+                        f"Médico: {medico_nombre}",
+                        "success"
+                    )
+                    self._agregar_log(
+                        f"Paciente: {nombre_paciente}",
+                        "success"
+                    )
+                    self._agregar_log(
+                        f"📋 Expediente guardado",
+                        "info"
+                    )
+                    
+                    self._crear_bloques_medicos()
+                    break
     
     def on_closing(self):
         """Manejar cierre de ventana (modo no standalone)"""
@@ -485,6 +834,9 @@ class PanelHospital(tk.Toplevel):
     
     def _on_closing_standalone(self):
         """Manejar cierre de ventana standalone"""
+        # Detener simulación
+        self.simulacion_activa = False
+        
         if self.socket:
             try:
                 self.socket.close()

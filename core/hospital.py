@@ -24,7 +24,7 @@ class Hospital:
     - Servidor de eventos para interfaces
     """
     
-    def __init__(self, capacidad_buffer: int = 5, num_productores: int = 2, num_medicos: int = 3):
+    def __init__(self, capacidad_buffer: int = 5, num_productores: int = 2, num_medicos: int = 3, verbose: bool = True):
         """
         Inicializa el hospital con sus componentes
         
@@ -32,16 +32,19 @@ class Hospital:
             capacidad_buffer: Capacidad máxima del buffer de pacientes
             num_productores: Número de threads productores
             num_medicos: Número de médicos (threads consumidores)
+            verbose: Si es True, muestra logs en consola; si es False, solo en archivo
         """
         # Configurar logging
         os.makedirs('data/logs', exist_ok=True)
+        handlers = [logging.FileHandler('data/logs/hospital.log', encoding='utf-8')]
+        if verbose:
+            handlers.append(logging.StreamHandler())
+        
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(threadName)-15s - %(levelname)-8s - %(message)s',
-            handlers=[
-                logging.FileHandler('data/logs/hospital.log', encoding='utf-8'),
-                logging.StreamHandler()
-            ]
+            handlers=handlers,
+            force=True
         )
         self.logger = logging.getLogger(__name__)
         

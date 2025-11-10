@@ -34,7 +34,6 @@ event_server_instance = None
 
 def signal_handler(sig, frame):
     """Maneja las señales de interrupción (Ctrl+C)"""
-    print("\n\n⏸️  Interrupción del usuario detectada")
     if event_server_instance:
         event_server_instance.detener()
     if hospital_instance:
@@ -79,75 +78,27 @@ def main():
     
     args = parser.parse_args()
     
-    # Banner de inicio
-    print("=" * 80)
-    print(" 🏥 SERVIDOR DEL SISTEMA HOSPITALARIO")
-    print("=" * 80)
-    print()
-    print(" Configuración:")
-    print(f" - Buffer de pacientes: capacidad {args.buffer_size}")
-    print(f" - Productores: {args.productores} hilos generando pacientes")
-    print(f" - Médicos/Consumidores: {args.medicos} hilos atendiendo")
-    print(f" - Puerto servidor eventos: {args.port}")
-    print()
-    print(" Patrones implementados:")
-    print(" - Productor-Consumidor con buffer sincronizado")
-    print(" - Lectores-Escritores para expedientes médicos")
-    print(" - Sincronización con semáforos y locks")
-    print()
-    print(" 💡 Interfaces disponibles:")
-    print("    python ui/panel_hospital.py      (Panel de visualización)")
-    print("    python ui/registro_paciente.py   (Registro de pacientes)")
-    print("    • Puedes abrir múltiples ventanas de cada tipo")
-    print("    • Se actualizan en tiempo real (event-driven)")
-    print()
-    print("=" * 80)
-    print()
-    
     try:
-        # Crear instancia del hospital con configuración
-        print("🚀 Inicializando sistema hospitalario...")
+        # Crear instancia del hospital con configuración (sin logs en consola)
         hospital_instance = Hospital(
             capacidad_buffer=args.buffer_size,
             num_productores=args.productores,
-            num_medicos=args.medicos
+            num_medicos=args.medicos,
+            verbose=False
         )
         
         # Crear servidor de eventos para comunicación con interfaces
-        print("🌐 Inicializando servidor de eventos...")
         event_server_instance = EventServer(hospital_instance, port=args.port)
         
         # Iniciar el hospital (hilos productores y consumidores)
-        print("▶️  Iniciando hilos del hospital...")
         hospital_instance.iniciar()
         
         # Iniciar servidor de eventos
-        print("▶️  Iniciando servidor de eventos...")
         event_server_instance.iniciar()
         
-        print()
-        print("=" * 80)
-        print("✅ SERVIDOR ACTIVO Y FUNCIONANDO")
-        print("=" * 80)
-        print()
-        print(f"🌐 Servidor de eventos escuchando en puerto {args.port}")
-        print()
-        print("📊 Estado del sistema:")
-        stats = hospital_instance.get_estadisticas()
-        print(f"   • Buffer: {stats['pacientes_en_buffer']}/{stats['capacidad_buffer']} pacientes")
-        print(f"   • Productores activos: {stats['productores_activos']}")
-        print(f"   • Médicos activos: {stats['medicos_activos']}")
-        print()
-        print("📋 Las interfaces gráficas pueden conectarse ahora:")
-        print("   Terminal 2: python ui/panel_hospital.py")
-        print("   Terminal 3: python ui/registro_paciente.py")
-        print()
-        print("⏸️  Presiona Ctrl+C para detener el servidor")
-        print("=" * 80)
-        print()
+        print(f"🏥 Servidor corriendo en puerto {args.port}")
         
         # Mantener el servidor corriendo
-        # Loop infinito (signal.pause() no funciona en Windows)
         try:
             while True:
                 time.sleep(1)
@@ -155,40 +106,19 @@ def main():
             pass
         
     except KeyboardInterrupt:
-        print("\n\n⏸️  Interrupción del usuario detectada")
+        pass
     except Exception as e:
-        print(f"\n\n❌ Error inesperado: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"\n❌ Error: {e}")
     finally:
-        print()
-        print("=" * 80)
-        print("🛑 DETENIENDO SERVIDOR")
-        print("=" * 80)
-        
         # Detener servidor de eventos
         if event_server_instance:
-            print("🔴 Deteniendo servidor de eventos...")
             event_server_instance.detener()
         
         # Detener hospital (hilos productores y consumidores)
         if hospital_instance:
-            print("🔴 Deteniendo hilos del hospital...")
             hospital_instance.detener()
-            
-            # Mostrar estadísticas finales
-            print()
-            print("📊 Estadísticas finales:")
-            stats = hospital_instance.get_estadisticas()
-            print(f"   • Pacientes generados: {stats['pacientes_generados']}")
-            print(f"   • Pacientes atendidos: {stats['pacientes_atendidos']}")
-            print(f"   • Expedientes registrados: {stats['expedientes']['total']}")
         
-        print()
-        print("✅ Servidor detenido correctamente")
-        print("¡Hasta pronto! 👋")
-        print("=" * 80)
-        print()
+        print("\n🛑 Servidor detenido")
 
 if __name__ == "__main__":
     main()
